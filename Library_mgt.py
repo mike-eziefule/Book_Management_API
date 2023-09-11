@@ -6,11 +6,11 @@ from typing import Optional
 app = FastAPI()
 
 class BookCreate(BaseModel):
-    title:str
-    author:str
-    language:str = 'en-US'
-    year:int
-    pages:int
+    title:str = None #  optional
+    author:str = None   # optional
+    language:str = 'English'
+    year:int = None # optional
+    pages:int = None # optional
 
 class Book(BookCreate):
     id:str
@@ -35,6 +35,8 @@ def home():
 
 @app.get("/books", status_code=status.HTTP_200_OK)
 def menu():
+    if books == {}:
+        return Response(message = "Database is empty")
     return books
 
 @app.get("/books/{id}", status_code=status.HTTP_200_OK)
@@ -56,7 +58,7 @@ def add_book(book_in: BookCreate):
     return Response(message = "Book added Succefully",
         data = book)
     
-@app.put("/books/{id}", status_code=status.HTTP_200_OK)
+@app.put("/books/{id}", status_code=status.HTTP_201_OK)
 def edit_book(id:UUID, book_in: BookUpdate):
     book = books.get(str(id))
     if not book:
@@ -65,11 +67,14 @@ def edit_book(id:UUID, book_in: BookUpdate):
             details = "Book not found"
         )
     book.title = book_in.title
+    book.author = book_in.author
+    book.language = book_in.language
+    book.year = book_in.year
     book.pages = book_in.pages
     return Response(message ="Book updated successfully", data = book)
 
 @app.delete("/books/{id}")
-def delete_bool(id:UUID):
+def delete_book(id:UUID):
     book = books.get(str(id))
     if not book:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
